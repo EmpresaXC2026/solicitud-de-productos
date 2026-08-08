@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitud de Productos | Registro de Usuario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul-oscuro:#0A2A66;
+    --azul-oscuro-2:#081f4d;
+    --azul-claro:#4AB3F4;
+    --amarillo:#FFD700;
+    --blanco:#ffffff;
+    --gris-claro:#f4f7fb;
+    --gris-borde:#dbe4f0;
+    --texto:#1b2537;
+    --texto-suave:#5b6a85;
+    --error:#e5484d;
+    --radio:14px;
+    --sombra: 0 10px 30px rgba(10,42,102,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Poppins', system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--gris-claro) 0%, #eaf2fb 100%);
+    color:var(--texto);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== Topbar ===== */
+  .topbar{
+    background: linear-gradient(120deg, var(--azul-oscuro) 0%, var(--azul-oscuro-2) 100%);
+    color:#fff;
+    padding:22px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    position:relative;
+    overflow:hidden;
+  }
+  .topbar::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:200px;height:200px;
+    background:radial-gradient(circle, rgba(255,215,0,0.18) 0%, transparent 70%);
+  }
+  .topbar h1{
+    font-size:clamp(18px,3vw,26px);
+    margin:0;
+    font-weight:700;
+    letter-spacing:.3px;
+  }
+  .topbar .logo-dot{
+    width:14px;height:14px;border-radius:50%;
+    background:var(--amarillo);
+    box-shadow:0 0 0 6px rgba(255,215,0,0.18);
+    flex:none;
+  }
+
+  .container{
+    max-width:900px;
+    margin:0 auto;
+    padding:28px 18px 80px;
+  }
+
+  .intro{
+    text-align:center;
+    margin-bottom:26px;
+  }
+  .intro h2{
+    color:var(--azul-oscuro);
+    font-size:22px;
+    margin:0;
+  }
+
+  /* ===== STEPPER ===== */
+  .stepper{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    max-width:640px;
+    margin:0 auto 30px;
+    position:relative;
+    padding:0 6px;
+  }
+  .stepper::before{
+    content:"";
+    position:absolute;
+    top:19px;
+    left:40px;
+    right:40px;
+    height:2px;
+    background:var(--gris-borde);
+    z-index:0;
+  }
+  .step{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    flex:1;
+  }
+  .step .circle{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:#fff;
+    border:2px solid var(--gris-borde);
+    color:var(--texto-suave);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    transition:all .2s ease;
+  }
+  .step .label{
+    font-size:12.5px;
+    color:var(--texto-suave);
+    font-weight:600;
+    text-align:center;
+    max-width:90px;
+    line-height:1.3;
+  }
+  .step.active .circle{
+    background:var(--azul-oscuro);
+    border-color:var(--azul-oscuro);
+    color:#fff;
+    box-shadow:0 0 0 5px rgba(10,42,102,0.12);
+  }
+  .step.active .label{color:var(--azul-oscuro);}
+  .step.done .circle{
+    background:var(--azul-oscuro);
+    border-color:var(--azul-oscuro);
+    color:#fff;
+  }
+  .step.done .label{color:var(--azul-oscuro);}
+
+  form{
+    background:var(--blanco);
+    border-radius:20px;
+    box-shadow:var(--sombra);
+    overflow:hidden;
+    border:1px solid var(--gris-borde);
+  }
+
+  .step-panel{display:none;}
+  .step-panel.active{display:block;}
+
+  .section{
+    padding:26px 26px 8px;
+  }
+
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 18px;
+  }
+  .section-title .badge{
+    width:34px;height:34px;
+    border-radius:10px;
+    background:linear-gradient(135deg, var(--azul-claro), var(--azul-oscuro));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:16px;flex:none;
+  }
+  .section-title h3{
+    margin:0;
+    color:var(--azul-oscuro);
+    font-size:17px;
+    font-weight:700;
+  }
+  .section-title span.sub{
+    display:block;
+    font-size:12px;
+    color:var(--texto-suave);
+    font-weight:400;
+    margin-top:2px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px 18px;
+    margin-bottom:18px;
+  }
+  .grid .full{grid-column:1 / -1;}
+
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr;}
+    .stepper .label{display:none;}
+  }
+
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--azul-oscuro);
+    margin-bottom:6px;
+  }
+  .field label .req{color:var(--error);}
+
+  .field input,
+  .field select{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--gris-borde);
+    background:#fbfdff;
+    font-family:inherit;
+    font-size:14px;
+    color:var(--texto);
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .field input:focus,
+  .field select:focus{
+    outline:none;
+    border-color:var(--azul-claro);
+    box-shadow:0 0 0 4px rgba(74,179,244,0.18);
+    background:#fff;
+  }
+  .field input.invalid,
+  .field select.invalid{
+    border-color:var(--error);
+    box-shadow:0 0 0 3px rgba(229,72,77,0.12);
+  }
+  .field small.err{
+    display:none;
+    color:var(--error);
+    font-size:11.5px;
+    margin-top:4px;
+  }
+  .field.has-error small.err{display:block;}
+
+  select{appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' stroke='%230A2A66' stroke-width='2' fill='none' fill-rule='evenodd'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:36px;
+  }
+
+  .nav-wrap{
+    padding:20px 26px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .btn-secondary{
+    background:#fff;
+    border:1.5px solid var(--gris-borde);
+    color:var(--azul-oscuro);
+    padding:14px 26px;
+    border-radius:50px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-secondary:hover{border-color:var(--azul-oscuro);}
+  .btn-secondary:disabled{opacity:.4; cursor:not-allowed;}
+
+  .btn-submit{
+    background:linear-gradient(120deg, var(--azul-oscuro), var(--azul-oscuro-2));
+    color:#fff;
+    border:none;
+    padding:16px 36px;
+    border-radius:50px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 10px 24px rgba(10,42,102,0.3);
+    transition:transform .15s ease, box-shadow .15s ease;
+    font-family:inherit;
+    margin-left:auto;
+  }
+  .btn-submit:hover{transform:translateY(-2px); box-shadow:0 14px 30px rgba(10,42,102,0.36);}
+  .btn-submit:active{transform:translateY(0);}
+  .btn-submit .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--amarillo);
+    flex:none;
+  }
+
+  .btn-next{margin-left:auto;}
+
+  /* ===== REVIEW STEP ===== */
+  .review-block{
+    margin-bottom:20px;
+  }
+  .review-block h4{
+    color:var(--azul-oscuro);
+    font-size:14px;
+    margin:0 0 10px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--gris-borde);
+  }
+  .review-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:10px 20px;
+  }
+  @media (max-width:640px){
+    .review-grid{grid-template-columns:1fr;}
+  }
+  .review-item{
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 12px;
+    background:var(--gris-claro);
+    border-radius:8px;
+  }
+  .review-item .k{color:var(--texto-suave); font-weight:600;}
+  .review-item .v{color:var(--texto); font-weight:600; text-align:right; word-break:break-word;}
+
+  .toast{
+    position:fixed;
+    bottom:22px; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--azul-oscuro);
+    color:#fff;
+    padding:14px 22px;
+    border-radius:12px;
+    font-size:14px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.25);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:999;
+    max-width:90vw;
+    text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast.error{background:var(--error);}
+
+  footer.page-footer{
+    text-align:center;
+    padding:20px;
+    color:var(--texto-suave);
+    font-size:12px;
+  }
+
+  /* ===== ADMIN ===== */
+  .hidden{display:none !important;}
+
+  #admin-login{
+    max-width:380px;
+    margin:80px auto;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:var(--sombra);
+    padding:32px 28px;
+    border:1px solid var(--gris-borde);
+  }
+  #admin-login h2{
+    color:var(--azul-oscuro);
+    margin-top:0;
+    text-align:center;
+  }
+  #admin-login .field{margin-bottom:14px;}
+  #admin-login .btn-submit{width:100%; justify-content:center; margin-left:0;}
+  .login-error{
+    color:var(--error);
+    font-size:13px;
+    text-align:center;
+    margin-top:10px;
+    display:none;
+  }
+
+  .admin-wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px 18px 60px;
+  }
+  .admin-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .admin-header h2{color:var(--azul-oscuro); margin:0;}
+  .btn-outline{
+    background:#fff;
+    border:1.5px solid var(--azul-oscuro);
+    color:var(--azul-oscuro);
+    padding:9px 18px;
+    border-radius:10px;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .btn-outline:hover{background:var(--azul-oscuro); color:#fff;}
+
+  .admin-toolbar{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .admin-toolbar input{
+    padding:10px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--gris-borde);
+    font-size:13px;
+    font-family:inherit;
+    min-width:220px;
+    flex:1;
+  }
+  .admin-toolbar select{
+    padding:10px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--gris-borde);
+    font-size:13px;
+    font-family:inherit;
+    background:#fff;
+  }
+
+  .table-wrap{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:var(--sombra);
+    overflow:auto;
+    border:1px solid var(--gris-borde);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    min-width:1000px;
+  }
+  thead th{
+    background:var(--azul-oscuro);
+    color:#fff;
+    text-align:left;
+    padding:12px 14px;
+    position:sticky;
+    top:0;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--gris-borde);
+    white-space:nowrap;
+  }
+  tbody tr:hover{background:#f7fbff;}
+  .btn-del{
+    background:var(--error);
+    color:#fff;
+    border:none;
+    padding:7px 12px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-del:hover{opacity:.85;}
+  .empty-row td{
+    text-align:center;
+    padding:30px;
+    color:var(--texto-suave);
+  }
+  .count-pill{
+    background:var(--azul-claro);
+    color:#fff;
+    padding:6px 14px;
+    border-radius:50px;
+    font-size:12.5px;
+    font-weight:600;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= VISTA: FORMULARIO PÚBLICO ================= -->
+<div id="view-form">
+  <div class="topbar">
+    <span class="logo-dot"></span>
+    <h1>Solicitud de Productos</h1>
+  </div>
+
+  <div class="container">
+    <div class="intro">
+      <h2>Completa tus datos</h2>
+    </div>
+
+    <div class="stepper" id="stepper">
+      <div class="step active" data-step="1">
+        <div class="circle">1</div>
+        <div class="label">Datos personales</div>
+      </div>
+      <div class="step" data-step="2">
+        <div class="circle">2</div>
+        <div class="label">Área laboral</div>
+      </div>
+      <div class="step" data-step="3">
+        <div class="circle">3</div>
+        <div class="label">Beneficiario</div>
+      </div>
+      <div class="step" data-step="4">
+        <div class="circle">4</div>
+        <div class="label">Revisión y envío</div>
+      </div>
+    </div>
+
+    <form id="creditForm" novalidate>
+
+      <!-- ===== PASO 1: DATOS PERSONALES ===== -->
+      <div class="step-panel active" data-panel="1">
+        <div class="section">
+          <div class="section-title">
+            <div class="badge">1</div>
+            <div>
+              <h3>Datos personales</h3>
+              <span class="sub">Información básica del solicitante</span>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field full">
+              <label>Nombre completo <span class="req">*</span></label>
+              <input type="text" name="nombreCompleto" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Fecha de nacimiento <span class="req">*</span></label>
+              <input type="date" name="fechaNacimiento" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>DPI <span class="req">*</span></label>
+              <input type="text" name="dpi" inputmode="numeric" maxlength="13" placeholder="0000 00000 0000" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>NIT <span class="req">*</span></label>
+              <input type="text" name="nit" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Número de teléfono <span class="req">*</span></label>
+              <input type="tel" name="telefono" inputmode="numeric" maxlength="8" placeholder="0000-0000" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Compañía telefónica <span class="req">*</span></label>
+              <select name="compania" required>
+                <option value="">Selecciona...</option>
+                <option value="Claro">Claro</option>
+                <option value="Tigo">Tigo</option>
+              </select>
+              <small class="err">Selecciona una opción</small>
+            </div>
+
+            <div class="field">
+              <label>Correo electrónico <span class="req">*</span></label>
+              <input type="email" name="correo" required>
+              <small class="err">Ingresa un correo válido</small>
+            </div>
+
+            <div class="field">
+              <label>Nivel académico <span class="req">*</span></label>
+              <input type="text" name="nivelAcademico" placeholder="Ej. Diversificado, Universitario..." required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field full">
+              <label>Dirección de domicilio <span class="req">*</span></label>
+              <input type="text" name="direccionDomicilio" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field full">
+              <label>Dirección de entrega <span class="req">*</span></label>
+              <input type="text" name="direccionEntrega" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Departamento <span class="req">*</span></label>
+              <input type="text" name="departamento" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Municipio <span class="req">*</span></label>
+              <input type="text" name="municipio" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-wrap">
+          <span></span>
+          <button type="button" class="btn-submit btn-next" data-next="2">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- ===== PASO 2: ÁREA LABORAL ===== -->
+      <div class="step-panel" data-panel="2">
+        <div class="section">
+          <div class="section-title">
+            <div class="badge">2</div>
+            <div>
+              <h3>Área laboral</h3>
+              <span class="sub">Información de empleo e ingresos</span>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label>Ingreso mensual (Q) <span class="req">*</span></label>
+              <input type="number" name="ingresoMensual" min="0" step="0.01" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Egreso mensual (Q) <span class="req">*</span></label>
+              <input type="number" name="egresoMensual" min="0" step="0.01" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Nombre de la empresa donde labora <span class="req">*</span></label>
+              <input type="text" name="nombreEmpresa" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Año de inicio de labores <span class="req">*</span></label>
+              <input type="number" name="anioInicioLabores" min="1950" max="2100" placeholder="Ej. 2020" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Puesto que desempeña <span class="req">*</span></label>
+              <input type="text" name="puesto" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Teléfono de la empresa <span class="req">*</span></label>
+              <input type="tel" name="telefonoEmpresa" inputmode="numeric" maxlength="8" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field full">
+              <label>Profesión u oficio <span class="req">*</span></label>
+              <input type="text" name="profesionOficio" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Referencia personal 1 &mdash; Nombre completo <span class="req">*</span></label>
+              <input type="text" name="referencia1Nombre" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Referencia personal 1 &mdash; Teléfono <span class="req">*</span></label>
+              <input type="tel" name="referencia1Telefono" inputmode="numeric" maxlength="8" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Referencia personal 2 &mdash; Nombre completo <span class="req">*</span></label>
+              <input type="text" name="referencia2Nombre" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Referencia personal 2 &mdash; Teléfono <span class="req">*</span></label>
+              <input type="tel" name="referencia2Telefono" inputmode="numeric" maxlength="8" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-wrap">
+          <button type="button" class="btn-secondary" data-prev="1">Anterior</button>
+          <button type="button" class="btn-submit btn-next" data-next="3">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- ===== PASO 3: BENEFICIARIO ===== -->
+      <div class="step-panel" data-panel="3">
+        <div class="section">
+          <div class="section-title">
+            <div class="badge">3</div>
+            <div>
+              <h3>Beneficiario</h3>
+              <span class="sub">Persona designada como beneficiario</span>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field full">
+              <label>Nombre completo del beneficiario <span class="req">*</span></label>
+              <input type="text" name="beneficiarioNombre" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Número de teléfono <span class="req">*</span></label>
+              <input type="tel" name="beneficiarioTelefono" inputmode="numeric" maxlength="8" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Fecha de nacimiento <span class="req">*</span></label>
+              <input type="date" name="beneficiarioFechaNacimiento" required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+
+            <div class="field">
+              <label>Parentesco <span class="req">*</span></label>
+              <input type="text" name="beneficiarioParentesco" placeholder="Ej. Hijo, Cónyuge, Padre..." required>
+              <small class="err">Este campo es obligatorio</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-wrap">
+          <button type="button" class="btn-secondary" data-prev="2">Anterior</button>
+          <button type="button" class="btn-submit btn-next" data-next="4">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- ===== PASO 4: REVISIÓN Y ENVÍO ===== -->
+      <div class="step-panel" data-panel="4">
+        <div class="section">
+          <div class="section-title">
+            <div class="badge">4</div>
+            <div>
+              <h3>Revisión y envío</h3>
+              <span class="sub">Verifica que todos tus datos sean correctos</span>
+            </div>
+          </div>
+
+          <div id="reviewContent"></div>
+        </div>
+
+        <div class="nav-wrap">
+          <button type="button" class="btn-secondary" data-prev="3">Anterior</button>
+          <button type="submit" class="btn-submit" id="btnSubmit">
+            <span class="dot"></span>
+            Enviar solicitud
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <footer class="page-footer">© <span id="year"></span> Solicitud de Productos. Todos los derechos reservados.</footer>
+</div>
+
+<!-- ================= VISTA: LOGIN ADMIN ================= -->
+<div id="view-admin-login" class="hidden">
+  <div class="topbar">
+    <span class="logo-dot"></span>
+    <h1>Panel Administrador</h1>
+  </div>
+  <div id="admin-login">
+    <h2>Acceso restringido</h2>
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="adminUser" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="adminPass" autocomplete="off">
+    </div>
+    <button class="btn-submit" id="btnAdminLogin">Ingresar</button>
+    <div class="login-error" id="adminLoginError">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- ================= VISTA: PANEL ADMIN ================= -->
+<div id="view-admin-panel" class="hidden">
+  <div class="topbar">
+    <span class="logo-dot"></span>
+    <h1>Panel Administrador &mdash; Historial de registros</h1>
+  </div>
+
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <div>
+        <span class="count-pill" id="totalCount">0 registros</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-outline" id="btnRefresh">Actualizar</button>
+        <button class="btn-outline" id="btnLogout">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div class="admin-toolbar">
+      <input type="text" id="filterText" placeholder="Buscar por nombre, DPI, NIT o teléfono...">
+      <select id="filterDepto">
+        <option value="">Todos los departamentos</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha registro</th>
+            <th>Nombre completo</th>
+            <th>DPI</th>
+            <th>NIT</th>
+            <th>Teléfono</th>
+            <th>Compañía</th>
+            <th>Correo</th>
+            <th>Departamento</th>
+            <th>Municipio</th>
+            <th>Ingreso mensual</th>
+            <th>Egreso mensual</th>
+            <th>Empresa</th>
+            <th>Puesto</th>
+            <th>Ref. 1</th>
+            <th>Ref. 2</th>
+            <th>Beneficiario</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="empty-row"><td colspan="17">Cargando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="page-footer">Panel interno &mdash; acceso restringido</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ================= FIREBASE ================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs, deleteDoc, doc,
+    serverTimestamp, orderBy, query
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ============ CONFIGURACIÓN DE FIREBASE ============
+  // ⚠️ Reemplaza estos valores con las credenciales reales de tu proyecto Firebase.
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    projectId: "TU_PROYECTO_ID",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const usuariosRef = collection(db, "usuarios");
+
+  // Número de WhatsApp destino (formato internacional sin +, sin espacios)
+  const WHATSAPP_NUMERO = "50259425024";
+
+  // ============ ADMIN: credenciales básicas (solo referencia, no es seguridad real) ============
+  const ADMIN_USER = "admin";
+  const ADMIN_PASS = "credito2026";
+
+  // ============ TOAST ============
+  const toastEl = document.getElementById("toast");
+  function showToast(msg, isError = false) {
+    toastEl.textContent = msg;
+    toastEl.className = "toast show" + (isError ? " error" : "");
+    setTimeout(() => { toastEl.className = "toast"; }, 3500);
+  }
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  // ============ WIZARD / STEPPER ============
+  const form = document.getElementById("creditForm");
+  const panels = [...form.querySelectorAll(".step-panel")];
+  const steps = [...document.querySelectorAll("#stepper .step")];
+  let currentStep = 1;
+
+  const FIELD_LABELS = {
+    nombreCompleto: "Nombre completo",
+    fechaNacimiento: "Fecha de nacimiento",
+    dpi: "DPI",
+    nit: "NIT",
+    telefono: "Teléfono",
+    compania: "Compañía telefónica",
+    correo: "Correo electrónico",
+    nivelAcademico: "Nivel académico",
+    direccionDomicilio: "Dirección de domicilio",
+    direccionEntrega: "Dirección de entrega",
+    departamento: "Departamento",
+    municipio: "Municipio",
+    ingresoMensual: "Ingreso mensual",
+    egresoMensual: "Egreso mensual",
+    nombreEmpresa: "Empresa donde labora",
+    anioInicioLabores: "Año de inicio de labores",
+    puesto: "Puesto que desempeña",
+    telefonoEmpresa: "Teléfono de la empresa",
+    profesionOficio: "Profesión u oficio",
+    referencia1Nombre: "Referencia 1 - Nombre",
+    referencia1Telefono: "Referencia 1 - Teléfono",
+    referencia2Nombre: "Referencia 2 - Nombre",
+    referencia2Telefono: "Referencia 2 - Teléfono",
+    beneficiarioNombre: "Nombre del beneficiario",
+    beneficiarioTelefono: "Teléfono del beneficiario",
+    beneficiarioFechaNacimiento: "Fecha de nacimiento del beneficiario",
+    beneficiarioParentesco: "Parentesco"
+  };
+
+  const STEP_GROUPS = {
+    1: { title: "Datos personales", fields: ["nombreCompleto","fechaNacimiento","dpi","nit","telefono","compania","correo","nivelAcademico","direccionDomicilio","direccionEntrega","departamento","municipio"] },
+    2: { title: "Área laboral", fields: ["ingresoMensual","egresoMensual","nombreEmpresa","anioInicioLabores","puesto","telefonoEmpresa","profesionOficio","referencia1Nombre","referencia1Telefono","referencia2Nombre","referencia2Telefono"] },
+    3: { title: "Beneficiario", fields: ["beneficiarioNombre","beneficiarioTelefono","beneficiarioFechaNacimiento","beneficiarioParentesco"] }
+  };
+
+  function updateStepperUI() {
+    steps.forEach(stepEl => {
+      const num = parseInt(stepEl.getAttribute("data-step"), 10);
+      stepEl.classList.remove("active", "done");
+      if (num === currentStep) stepEl.classList.add("active");
+      else if (num < currentStep) stepEl.classList.add("done");
+    });
+    panels.forEach(p => {
+      p.classList.toggle("active", parseInt(p.getAttribute("data-panel"), 10) === currentStep);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function validatePanel(panelNum) {
+    const panel = panels.find(p => parseInt(p.getAttribute("data-panel"), 10) === panelNum);
+    let valid = true;
+    const fields = panel.querySelectorAll("input[required], select[required]");
+    fields.forEach(field => {
+      const wrapper = field.closest(".field");
+      if (!field.value || !field.value.trim()) {
+        field.classList.add("invalid");
+        wrapper.classList.add("has-error");
+        valid = false;
+      } else {
+        field.classList.remove("invalid");
+        wrapper.classList.remove("has-error");
+      }
+    });
+    const correo = panel.querySelector('[name="correo"]');
+    if (correo && correo.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.value)) {
+      correo.classList.add("invalid");
+      correo.closest(".field").classList.add("has-error");
+      valid = false;
+    }
+    return valid;
+  }
+
+  function buildReview() {
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => { data[key] = value; });
+
+    let html = "";
+    Object.keys(STEP_GROUPS).forEach(stepNum => {
+      const group = STEP_GROUPS[stepNum];
+      html += `<div class="review-block"><h4>${group.title}</h4><div class="review-grid">`;
+      group.fields.forEach(f => {
+        html += `<div class="review-item"><span class="k">${FIELD_LABELS[f] || f}</span><span class="v">${data[f] || "-"}</span></div>`;
+      });
+      html += `</div></div>`;
+    });
+
+    document.getElementById("reviewContent").innerHTML = html;
+  }
+
+  form.querySelectorAll(".btn-next").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!validatePanel(currentStep)) {
+        showToast("Por favor completa todos los campos obligatorios.", true);
+        const panel = panels.find(p => parseInt(p.getAttribute("data-panel"), 10) === currentStep);
+        const firstInvalid = panel.querySelector(".invalid");
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      const next = parseInt(btn.getAttribute("data-next"), 10);
+      currentStep = next;
+      if (currentStep === 4) buildReview();
+      updateStepperUI();
+    });
+  });
+
+  form.querySelectorAll("[data-prev]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentStep = parseInt(btn.getAttribute("data-prev"), 10);
+      updateStepperUI();
+    });
+  });
+
+  form.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", () => {
+      if (el.value && el.value.trim()) {
+        el.classList.remove("invalid");
+        el.closest(".field").classList.remove("has-error");
+      }
+    });
+  });
+
+  function buildWhatsAppMessage(data) {
+    const lineas = [
+      "*NUEVA SOLICITUD DE PRODUCTOS*",
+      "",
+      "*Datos personales*",
+      `Nombre: ${data.nombreCompleto}`,
+      `Fecha de nacimiento: ${data.fechaNacimiento}`,
+      `DPI: ${data.dpi}`,
+      `NIT: ${data.nit}`,
+      `Teléfono: ${data.telefono} (${data.compania})`,
+      `Correo: ${data.correo}`,
+      `Nivel académico: ${data.nivelAcademico}`,
+      `Dirección domicilio: ${data.direccionDomicilio}`,
+      `Dirección entrega: ${data.direccionEntrega}`,
+      `Departamento: ${data.departamento}`,
+      `Municipio: ${data.municipio}`,
+      "",
+      "*Área laboral*",
+      `Ingreso mensual: Q${data.ingresoMensual}`,
+      `Egreso mensual: Q${data.egresoMensual}`,
+      `Empresa: ${data.nombreEmpresa}`,
+      `Año inicio de labores: ${data.anioInicioLabores}`,
+      `Puesto: ${data.puesto}`,
+      `Teléfono empresa: ${data.telefonoEmpresa}`,
+      `Profesión u oficio: ${data.profesionOficio}`,
+      `Referencia 1: ${data.referencia1Nombre} - ${data.referencia1Telefono}`,
+      `Referencia 2: ${data.referencia2Nombre} - ${data.referencia2Telefono}`,
+      "",
+      "*Beneficiario*",
+      `Nombre: ${data.beneficiarioNombre}`,
+      `Teléfono: ${data.beneficiarioTelefono}`,
+      `Fecha de nacimiento: ${data.beneficiarioFechaNacimiento}`,
+      `Parentesco: ${data.beneficiarioParentesco}`
+    ];
+    return lineas.join("\n");
+  }
+
+  const btnSubmit = document.getElementById("btnSubmit");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!validatePanel(3)) {
+      showToast("Revisa los datos del beneficiario antes de enviar.", true);
+      currentStep = 3;
+      updateStepperUI();
+      return;
+    }
+
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => { data[key] = value.trim ? value.trim() : value; });
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = "Enviando...";
+
+    try {
+      await addDoc(usuariosRef, {
+        ...data,
+        creadoEn: serverTimestamp()
+      });
+
+      const mensaje = buildWhatsAppMessage(data);
+      const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
+      showToast("Solicitud guardada correctamente. Redirigiendo a WhatsApp...");
+      setTimeout(() => { window.open(url, "_blank"); }, 800);
+
+      form.reset();
+      currentStep = 1;
+      updateStepperUI();
+    } catch (err) {
+      console.error(err);
+      showToast("Ocurrió un error al guardar tus datos. Intenta nuevamente.", true);
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '<span class="dot"></span> Enviar solicitud';
+    }
+  });
+
+  // ============ ROUTING SIMPLE (/admin oculto) ============
+  const viewForm = document.getElementById("view-form");
+  const viewAdminLogin = document.getElementById("view-admin-login");
+  const viewAdminPanel = document.getElementById("view-admin-panel");
+
+  function isAdminRoute() {
+    return window.location.hash === "#admin" || window.location.pathname.replace(/\/$/, "").endsWith("/admin");
+  }
+
+  function showView(view) {
+    [viewForm, viewAdminLogin, viewAdminPanel].forEach(v => v.classList.add("hidden"));
+    view.classList.remove("hidden");
+  }
+
+  function isLoggedIn() {
+    return sessionStorage.getItem("adminLogged") === "true";
+  }
+
+  function router() {
+    if (isAdminRoute()) {
+      if (isLoggedIn()) {
+        showView(viewAdminPanel);
+        loadRecords();
+      } else {
+        showView(viewAdminLogin);
+      }
+    } else {
+      showView(viewForm);
+    }
+  }
+
+  window.addEventListener("hashchange", router);
+  router();
+
+  // ============ LOGIN ADMIN ============
+  document.getElementById("btnAdminLogin").addEventListener("click", () => {
+    const user = document.getElementById("adminUser").value.trim();
+    const pass = document.getElementById("adminPass").value.trim();
+    const errorEl = document.getElementById("adminLoginError");
+
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
+      sessionStorage.setItem("adminLogged", "true");
+      errorEl.style.display = "none";
+      window.location.hash = "#admin";
+      showView(viewAdminPanel);
+      loadRecords();
+    } else {
+      errorEl.style.display = "block";
+    }
+  });
+
+  document.getElementById("btnLogout").addEventListener("click", () => {
+    sessionStorage.removeItem("adminLogged");
+    window.location.hash = "";
+    router();
+  });
+
+  // ============ PANEL ADMIN: CARGA, FILTRO Y ELIMINACIÓN ============
+  let allRecords = [];
+
+  async function loadRecords() {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="17">Cargando registros...</td></tr>';
+
+    try {
+      const q = query(usuariosRef, orderBy("creadoEn", "desc"));
+      const snapshot = await getDocs(q);
+      allRecords = [];
+      snapshot.forEach(docSnap => {
+        allRecords.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      populateDeptoFilter();
+      renderTable(allRecords);
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="17">Error al cargar los registros. Verifica tu configuración de Firebase.</td></tr>';
+    }
+  }
+
+  function populateDeptoFilter() {
+    const select = document.getElementById("filterDepto");
+    const current = select.value;
+    const deptos = [...new Set(allRecords.map(r => r.departamento).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">Todos los departamentos</option>' +
+      deptos.map(d => `<option value="${d}">${d}</option>`).join("");
+    select.value = current;
+  }
+
+  function formatDate(ts) {
+    if (!ts) return "-";
+    try {
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleDateString("es-GT", { year: "numeric", month: "2-digit", day: "2-digit" }) +
+             " " + d.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "-";
+    }
+  }
+
+  function renderTable(records) {
+    const tbody = document.getElementById("tableBody");
+    document.getElementById("totalCount").textContent = `${records.length} registro${records.length === 1 ? "" : "s"}`;
+
+    if (!records.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="17">No se encontraron registros.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = records.map(r => `
+      <tr data-id="${r.id}">
+        <td>${formatDate(r.creadoEn)}</td>
+        <td>${r.nombreCompleto || "-"}</td>
+        <td>${r.dpi || "-"}</td>
+        <td>${r.nit || "-"}</td>
+        <td>${r.telefono || "-"}</td>
+        <td>${r.compania || "-"}</td>
+        <td>${r.correo || "-"}</td>
+        <td>${r.departamento || "-"}</td>
+        <td>${r.municipio || "-"}</td>
+        <td>${r.ingresoMensual ? "Q" + r.ingresoMensual : "-"}</td>
+        <td>${r.egresoMensual ? "Q" + r.egresoMensual : "-"}</td>
+        <td>${r.nombreEmpresa || "-"}</td>
+        <td>${r.puesto || "-"}</td>
+        <td>${r.referencia1Nombre ? r.referencia1Nombre + " (" + (r.referencia1Telefono||"-") + ")" : "-"}</td>
+        <td>${r.referencia2Nombre ? r.referencia2Nombre + " (" + (r.referencia2Telefono||"-") + ")" : "-"}</td>
+        <td>${r.beneficiarioNombre || "-"}</td>
+        <td><button class="btn-del" data-id="${r.id}">Eliminar</button></td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll(".btn-del").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        if (!confirm("¿Eliminar este registro de forma permanente?")) return;
+        try {
+          await deleteDoc(doc(db, "usuarios", id));
+          allRecords = allRecords.filter(r => r.id !== id);
+          applyFilters();
+          showToast("Registro eliminado.");
+        } catch (err) {
+          console.error(err);
+          showToast("No se pudo eliminar el registro.", true);
+        }
+      });
+    });
+  }
+
+  function applyFilters() {
+    const text = document.getElementById("filterText").value.trim().toLowerCase();
+    const depto = document.getElementById("filterDepto").value;
+
+    let filtered = allRecords;
+
+    if (depto) {
+      filtered = filtered.filter(r => r.departamento === depto);
+    }
+
+    if (text) {
+      filtered = filtered.filter(r =>
+        (r.nombreCompleto || "").toLowerCase().includes(text) ||
+        (r.dpi || "").toLowerCase().includes(text) ||
+        (r.nit || "").toLowerCase().includes(text) ||
+        (r.telefono || "").toLowerCase().includes(text)
+      );
+    }
+
+    renderTable(filtered);
+  }
+
+  document.getElementById("filterText").addEventListener("input", applyFilters);
+  document.getElementById("filterDepto").addEventListener("change", applyFilters);
+  document.getElementById("btnRefresh").addEventListener("click", loadRecords);
+</script>
+</body>
+</html>
