@@ -63,6 +63,7 @@
     background:var(--amarillo);
     box-shadow:0 0 0 6px rgba(255,215,0,0.18);
     flex:none;
+    cursor:pointer;
   }
 
   .container{
@@ -490,7 +491,7 @@
 <!-- ================= VISTA: FORMULARIO PÚBLICO ================= -->
 <div id="view-form">
   <div class="topbar">
-    <span class="logo-dot"></span>
+    <span class="logo-dot" id="adminTrigger"></span>
     <h1>Solicitud de Productos</h1>
   </div>
 
@@ -1142,6 +1143,24 @@
   });
 
   window.addEventListener("hashchange", router);
+
+  // ============ GATILLO SECRETO: 5 toques seguidos abren el login admin ============
+  const adminTrigger = document.getElementById("adminTrigger");
+  let tapCount = 0;
+  let tapTimer = null;
+
+  adminTrigger.addEventListener("click", () => {
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { tapCount = 0; }, 1500); // se reinicia si tarda más de 1.5s entre toques
+
+    if (tapCount >= 5) {
+      tapCount = 0;
+      clearTimeout(tapTimer);
+      window.location.hash = "#admin";
+      router();
+    }
+  });
 
   // ============ LOGIN ADMIN (Firebase Authentication) ============
   document.getElementById("btnAdminLogin").addEventListener("click", async () => {
