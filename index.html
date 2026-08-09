@@ -902,9 +902,7 @@
   const storage = getStorage(app);
   const usuariosRef = collection(db, "usuarios");
 
-  // ============ NOTIFICACIÓN AUTOMÁTICA POR TELEGRAM ============
-  const TELEGRAM_BOT_TOKEN = "8860861622:AAHF01y1xuvOJXzHyVeaWG7DIfwBsbLay8g";
-  const TELEGRAM_CHAT_ID = "5329085044";
+  // ============ NOTIFICACIÓN AUTOMÁTICA POR TELEGRAM (vía Cloudflare Worker) ============
 
   function construirMensajeTelegram(data) {
     const lineas = [
@@ -945,14 +943,20 @@
     return lineas.join("\n");
   }
 
+  // URL del Worker de Cloudflare que reenvía el mensaje a Telegram
+  const TELEGRAM_PROXY_URL = "https://holy-pond-3614.erick2000ceren.workers.dev";
+
   async function enviarNotificacionTelegram(data) {
     try {
       const mensaje = construirMensajeTelegram(data);
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      const res = await fetch(TELEGRAM_PROXY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: mensaje })
+        body: JSON.stringify({ text: mensaje })
       });
+      if (!res.ok) {
+        console.error("El proxy de Telegram respondió con error:", await res.text());
+      }
     } catch (err) {
       console.error("No se pudo enviar la notificación a Telegram:", err);
       // No interrumpe el flujo del formulario si esto falla
