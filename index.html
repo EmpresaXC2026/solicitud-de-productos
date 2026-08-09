@@ -611,13 +611,13 @@
 
             <div class="field">
               <label>Foto DPI - Frente <span class="req">*</span></label>
-              <input type="file" name="dpiFrente" id="dpiFrente" accept="image/*" capture="environment" required>
+              <input type="file" name="dpiFrente" id="dpiFrente" accept="image/*" required>
               <small class="err">Este campo es obligatorio</small>
             </div>
 
             <div class="field">
               <label>Foto DPI - Verso <span class="req">*</span></label>
-              <input type="file" name="dpiVerso" id="dpiVerso" accept="image/*" capture="environment" required>
+              <input type="file" name="dpiVerso" id="dpiVerso" accept="image/*" required>
               <small class="err">Este campo es obligatorio</small>
             </div>
           </div>
@@ -902,6 +902,63 @@
   const storage = getStorage(app);
   const usuariosRef = collection(db, "usuarios");
 
+  // ============ NOTIFICACIÓN AUTOMÁTICA POR TELEGRAM ============
+  const TELEGRAM_BOT_TOKEN = "8860861622:AAHF01y1xuvOJXzHyVeaWG7DIfwBsbLay8g";
+  const TELEGRAM_CHAT_ID = "5329085044";
+
+  function construirMensajeTelegram(data) {
+    const lineas = [
+      "📋 NUEVA SOLICITUD DE PRODUCTOS",
+      "",
+      "Datos personales",
+      `Nombre: ${data.nombreCompleto || "-"}`,
+      `Fecha de nacimiento: ${data.fechaNacimiento || "-"}`,
+      `DPI: ${data.dpi || "-"}`,
+      `NIT: ${data.nit || "-"}`,
+      `Teléfono: ${data.telefono || "-"} (${data.compania || "-"})`,
+      `Correo: ${data.correo || "-"}`,
+      `Nivel académico: ${data.nivelAcademico || "-"}`,
+      `Dirección domicilio: ${data.direccionDomicilio || "-"}`,
+      `Dirección entrega: ${data.direccionEntrega || "-"}`,
+      `Departamento: ${data.departamento || "-"}`,
+      `Municipio: ${data.municipio || "-"}`,
+      "",
+      "Área laboral",
+      `Ingreso mensual: Q${data.ingresoMensual || "-"}`,
+      `Egreso mensual: Q${data.egresoMensual || "-"}`,
+      `Empresa: ${data.nombreEmpresa || "-"}`,
+      `Año inicio de labores: ${data.anioInicioLabores || "-"}`,
+      `Puesto: ${data.puesto || "-"}`,
+      `Teléfono empresa: ${data.telefonoEmpresa || "-"}`,
+      `Profesión u oficio: ${data.profesionOficio || "-"}`,
+      `Referencia 1: ${data.referencia1Nombre || "-"} - ${data.referencia1Telefono || "-"}`,
+      `Referencia 2: ${data.referencia2Nombre || "-"} - ${data.referencia2Telefono || "-"}`,
+      "",
+      "Beneficiario",
+      `Nombre: ${data.beneficiarioNombre || "-"}`,
+      `Teléfono: ${data.beneficiarioTelefono || "-"}`,
+      `Fecha de nacimiento: ${data.beneficiarioFechaNacimiento || "-"}`,
+      `Parentesco: ${data.beneficiarioParentesco || "-"}`
+    ];
+    if (data.dpiFrenteUrl) lineas.push("", `Foto DPI frente: ${data.dpiFrenteUrl}`);
+    if (data.dpiVersoUrl) lineas.push(`Foto DPI verso: ${data.dpiVersoUrl}`);
+    return lineas.join("\n");
+  }
+
+  async function enviarNotificacionTelegram(data) {
+    try {
+      const mensaje = construirMensajeTelegram(data);
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: mensaje })
+      });
+    } catch (err) {
+      console.error("No se pudo enviar la notificación a Telegram:", err);
+      // No interrumpe el flujo del formulario si esto falla
+    }
+  }
+
   // ============ TOAST ============
   const toastEl = document.getElementById("toast");
   function showToast(msg, isError = false) {
@@ -1083,6 +1140,11 @@
         ...data,
         creadoEn: serverTimestamp()
       });
+
+      // ============ NOTIFICACIÓN AUTOMÁTICA POR TELEGRAM ============
+      await enviarNotificacionTelegram(data);
+
+      await enviarNotificacionTelegram(data);
 
       showToast("Solicitud enviada correctamente. ¡Gracias!");
 
