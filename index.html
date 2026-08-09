@@ -348,6 +348,29 @@
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .toast.error{background:var(--error);}
 
+  .whatsapp-fab{
+    position:fixed;
+    bottom:22px; left:50%;
+    transform:translateX(-50%);
+    background:#25D366;
+    color:#fff;
+    padding:14px 22px;
+    border-radius:30px;
+    font-size:14px;
+    font-weight:700;
+    text-decoration:none;
+    box-shadow:0 12px 30px rgba(0,0,0,0.3);
+    z-index:998;
+    max-width:92vw;
+    text-align:center;
+    animation:whatsappPulse 1.6s ease-in-out infinite;
+  }
+  .whatsapp-fab.hidden{display:none;}
+  @keyframes whatsappPulse{
+    0%,100%{box-shadow:0 12px 30px rgba(37,211,102,0.35);}
+    50%{box-shadow:0 12px 30px rgba(37,211,102,0.75);}
+  }
+
   footer.page-footer{
     text-align:center;
     padding:20px;
@@ -963,6 +986,10 @@
 
 <div class="toast" id="toast"></div>
 
+<a href="#" id="btnWhatsappRespaldo" class="whatsapp-fab hidden" target="_blank" rel="noopener">
+  📲 Toca aquí para enviar por WhatsApp
+</a>
+
 <!-- ================= FIREBASE ================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1038,15 +1065,26 @@
     return lineas.join("\n");
   }
 
+  function construirUrlWhatsapp(data) {
+    const mensaje = construirMensajeWhatsapp(data);
+    return `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
+  }
+
   function enviarNotificacionWhatsapp(data) {
     try {
-      const mensaje = construirMensajeWhatsapp(data);
-      const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
-      window.open(url, "_blank");
+      window.open(construirUrlWhatsapp(data), "_blank");
     } catch (err) {
       console.error("No se pudo abrir la notificación de WhatsApp:", err);
       // No interrumpe el flujo del formulario si esto falla
     }
+  }
+
+  // Deja siempre visible un botón manual con el mensaje ya armado, por si el
+  // navegador bloquea la apertura automática o el usuario lo cierra sin querer.
+  const btnWhatsappRespaldo = document.getElementById("btnWhatsappRespaldo");
+  function mostrarBotonWhatsapp(data) {
+    btnWhatsappRespaldo.href = construirUrlWhatsapp(data);
+    btnWhatsappRespaldo.classList.remove("hidden");
   }
 
   // ============ TOAST ============
@@ -1200,6 +1238,8 @@
       return;
     }
 
+    btnWhatsappRespaldo.classList.add("hidden");
+
     const formData = new FormData(form);
     const data = {};
     formData.forEach((value, key) => {
@@ -1209,11 +1249,6 @@
 
     const dpiFrenteFile = document.getElementById("dpiFrente").files[0];
     const dpiVersoFile = document.getElementById("dpiVerso").files[0];
-
-    // ============ NOTIFICACIÓN INMEDIATA POR WHATSAPP ============
-    // Se abre en el mismo instante del clic (sin esperar subidas ni Firestore)
-    // para que el navegador nunca lo trate como pop-up bloqueado.
-    enviarNotificacionWhatsapp(data);
 
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = "Enviando...";
@@ -1231,12 +1266,19 @@
         data.dpiVersoUrl = await getDownloadURL(vRef);
       }
 
+      // ============ 1) GUARDAR PRIMERO EN FIRESTORE (queda en el historial) ============
       await addDoc(usuariosRef, {
         ...data,
         creadoEn: serverTimestamp()
       });
 
       showToast("Solicitud enviada correctamente. ¡Gracias!");
+
+      // ============ 2) NOTIFICAR POR WHATSAPP (ya con datos guardados y fotos) ============
+      // Se hace en cuanto termina de guardar, para que el registro nunca dependa
+      // de que el teléfono alcance a completar la operación al cambiar a la app de WhatsApp.
+      mostrarBotonWhatsapp(data);
+      enviarNotificacionWhatsapp(data);
 
       form.reset();
       currentStep = 1;
