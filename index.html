@@ -1038,15 +1038,11 @@
     return lineas.join("\n");
   }
 
-  function enviarNotificacionWhatsapp(data, ventana) {
+  function enviarNotificacionWhatsapp(data) {
     try {
       const mensaje = construirMensajeWhatsapp(data);
       const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
-      if (ventana && !ventana.closed) {
-        ventana.location.href = url;
-      } else {
-        window.open(url, "_blank");
-      }
+      window.open(url, "_blank");
     } catch (err) {
       console.error("No se pudo abrir la notificación de WhatsApp:", err);
       // No interrumpe el flujo del formulario si esto falla
@@ -1214,9 +1210,10 @@
     const dpiFrenteFile = document.getElementById("dpiFrente").files[0];
     const dpiVersoFile = document.getElementById("dpiVerso").files[0];
 
-    // Se abre la pestaña de inmediato (dentro del gesto de clic del usuario) para
-    // que el navegador/móvil no la bloquee; luego se le asigna la URL de WhatsApp.
-    const ventanaWhatsapp = window.open("", "_blank");
+    // ============ NOTIFICACIÓN INMEDIATA POR WHATSAPP ============
+    // Se abre en el mismo instante del clic (sin esperar subidas ni Firestore)
+    // para que el navegador nunca lo trate como pop-up bloqueado.
+    enviarNotificacionWhatsapp(data);
 
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = "Enviando...";
@@ -1239,9 +1236,6 @@
         creadoEn: serverTimestamp()
       });
 
-      // ============ NOTIFICACIÓN AUTOMÁTICA POR WHATSAPP ============
-      enviarNotificacionWhatsapp(data, ventanaWhatsapp);
-
       showToast("Solicitud enviada correctamente. ¡Gracias!");
 
       form.reset();
@@ -1249,7 +1243,6 @@
       updateStepperUI();
     } catch (err) {
       console.error(err);
-      if (ventanaWhatsapp && !ventanaWhatsapp.closed) ventanaWhatsapp.close();
       showToast("Ocurrió un error al guardar tus datos. Intenta nuevamente.", true);
     } finally {
       btnSubmit.disabled = false;
