@@ -328,6 +328,17 @@
   .review-item .k{color:var(--texto-suave); font-weight:600;}
   .review-item .v{color:var(--texto); font-weight:600; text-align:right; word-break:break-word;}
 
+  .aviso-whatsapp{
+    background:#FFF4E5;
+    border:2px solid var(--naranja, #F5A623);
+    color:#7A4A00;
+    border-radius:12px;
+    padding:16px 18px;
+    margin-top:18px;
+    font-size:14px;
+    line-height:1.5;
+  }
+
   .toast{
     position:fixed;
     bottom:22px; left:50%;
@@ -716,18 +727,6 @@
               <input type="text" name="municipio" required>
               <small class="err">Este campo es obligatorio</small>
             </div>
-
-            <div class="field">
-              <label>Foto DPI - Frente <span class="req">*</span></label>
-              <input type="file" name="dpiFrente" id="dpiFrente" accept="image/*" required>
-              <small class="err">Este campo es obligatorio</small>
-            </div>
-
-            <div class="field">
-              <label>Foto DPI - Verso <span class="req">*</span></label>
-              <input type="file" name="dpiVerso" id="dpiVerso" accept="image/*" required>
-              <small class="err">Este campo es obligatorio</small>
-            </div>
           </div>
         </div>
 
@@ -879,6 +878,13 @@
           </div>
 
           <div id="reviewContent"></div>
+
+          <div class="aviso-whatsapp">
+            ⚠️ <strong>IMPORTANTE — OBLIGATORIO:</strong> al enviar tus datos serás dirigido a WhatsApp.
+            Es <strong>obligatorio</strong> que en ese chat envíes las <strong>fotografías de tu DPI
+            (Documento Personal de Identificación), de ambos lados</strong> (frente y verso), para poder
+            procesar tu solicitud.
+          </div>
         </div>
 
         <div class="nav-wrap">
@@ -962,13 +968,11 @@
             <th>Ref. 1</th>
             <th>Ref. 2</th>
             <th>Beneficiario</th>
-            <th>DPI Frente</th>
-            <th>DPI Verso</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr class="empty-row"><td colspan="19">Cargando registros...</td></tr>
+          <tr class="empty-row"><td colspan="17">Cargando registros...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1005,9 +1009,6 @@
   import {
     getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getStorage, ref as storageRef, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   // ============ CONFIGURACIÓN DE FIREBASE ============
   // ⚠️ Reemplaza estos valores con las credenciales reales de tu proyecto Firebase.
@@ -1023,10 +1024,17 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
-  const storage = getStorage(app);
   const usuariosRef = collection(db, "usuarios");
 
   // ============ NOTIFICACIÓN AUTOMÁTICA POR WHATSAPP ============
+
+  // Evita que una subida se quede colgada para siempre con mala señal
+  function conTimeout(promesa, ms, mensajeError) {
+    return Promise.race([
+      promesa,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(mensajeError)), ms))
+    ]);
+  }
 
   // Número de WhatsApp que recibe la notificación (código de país + número, sin signos)
   const WHATSAPP_NUMERO = "50259425024";
@@ -1067,6 +1075,7 @@
     ];
     if (data.dpiFrenteUrl) lineas.push("", `Foto DPI frente: ${data.dpiFrenteUrl}`);
     if (data.dpiVersoUrl) lineas.push(`Foto DPI verso: ${data.dpiVersoUrl}`);
+    lineas.push("", "📎 Recuerda enviar en este chat las fotos del DPI (frente y verso).");
     return lineas.join("\n");
   }
 
@@ -1097,7 +1106,7 @@
   function showToast(msg, isError = false) {
     toastEl.textContent = msg;
     toastEl.className = "toast show" + (isError ? " error" : "");
-    setTimeout(() => { toastEl.className = "toast"; }, 3500);
+    setTimeout(() => { toastEl.className = "toast"; }, isError ? 6000 : 3500);
   }
 
   document.getElementById("year").textContent = new Date().getFullYear();
@@ -1248,38 +1257,23 @@
     const formData = new FormData(form);
     const data = {};
     formData.forEach((value, key) => {
-      if (key === "dpiFrente" || key === "dpiVerso") return; // los archivos se procesan aparte
       data[key] = value.trim ? value.trim() : value;
     });
 
-    const dpiFrenteFile = document.getElementById("dpiFrente").files[0];
-    const dpiVersoFile = document.getElementById("dpiVerso").files[0];
-
     btnSubmit.disabled = true;
-    btnSubmit.innerHTML = "Enviando...";
+    btnSubmit.innerHTML = "Guardando...";
 
     try {
-      const sello = Date.now();
-      if (dpiFrenteFile) {
-        const fRef = storageRef(storage, `dpi/${sello}_frente_${dpiFrenteFile.name}`);
-        await uploadBytes(fRef, dpiFrenteFile);
-        data.dpiFrenteUrl = await getDownloadURL(fRef);
-      }
-      if (dpiVersoFile) {
-        const vRef = storageRef(storage, `dpi/${sello}_verso_${dpiVersoFile.name}`);
-        await uploadBytes(vRef, dpiVersoFile);
-        data.dpiVersoUrl = await getDownloadURL(vRef);
-      }
-
       // ============ 1) GUARDAR PRIMERO EN FIRESTORE (queda en el historial) ============
-      await addDoc(usuariosRef, {
-        ...data,
-        creadoEn: serverTimestamp()
-      });
+      await conTimeout(
+        addDoc(usuariosRef, { ...data, creadoEn: serverTimestamp() }),
+        20000,
+        "Guardar la solicitud tardó demasiado. Verifica tu conexión e intenta de nuevo."
+      );
 
       showToast("Solicitud enviada correctamente. ¡Gracias!");
 
-      // ============ 2) NOTIFICAR POR WHATSAPP (ya con datos guardados y fotos) ============
+      // ============ 2) NOTIFICAR POR WHATSAPP (ya con los datos guardados) ============
       // Se hace en cuanto termina de guardar, para que el registro nunca dependa
       // de que el teléfono alcance a completar la operación al cambiar a la app de WhatsApp.
       mostrarBotonWhatsapp(data);
@@ -1290,7 +1284,10 @@
       updateStepperUI();
     } catch (err) {
       console.error(err);
-      showToast("Ocurrió un error al guardar tus datos. Intenta nuevamente.", true);
+      const mensajeError = (err && err.message && err.message.length < 150)
+        ? err.message
+        : "Ocurrió un error al guardar tus datos. Intenta nuevamente.";
+      showToast(mensajeError, true);
     } finally {
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = '<span class="dot"></span> Enviar solicitud';
@@ -1386,7 +1383,7 @@
 
   async function loadRecords() {
     const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="19">Cargando registros...</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="17">Cargando registros...</td></tr>';
 
     try {
       const q = query(usuariosRef, orderBy("creadoEn", "desc"));
@@ -1399,7 +1396,7 @@
       renderTable(allRecords);
     } catch (err) {
       console.error(err);
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="19">Error al cargar los registros. Verifica tu configuración de Firebase.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="17">Error al cargar los registros. Verifica tu configuración de Firebase.</td></tr>';
     }
   }
 
@@ -1428,7 +1425,7 @@
     document.getElementById("totalCount").textContent = `${records.length} registro${records.length === 1 ? "" : "s"}`;
 
     if (!records.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="19">No se encontraron registros.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="17">No se encontraron registros.</td></tr>';
       return;
     }
 
@@ -1450,8 +1447,6 @@
         <td>${r.referencia1Nombre ? r.referencia1Nombre + " (" + (r.referencia1Telefono||"-") + ")" : "-"}</td>
         <td>${r.referencia2Nombre ? r.referencia2Nombre + " (" + (r.referencia2Telefono||"-") + ")" : "-"}</td>
         <td>${r.beneficiarioNombre || "-"}</td>
-        <td>${r.dpiFrenteUrl ? `<a href="${r.dpiFrenteUrl}" target="_blank" rel="noopener"><img src="${r.dpiFrenteUrl}" alt="DPI frente" style="width:48px;height:32px;object-fit:cover;border-radius:4px;"></a>` : "-"}</td>
-        <td>${r.dpiVersoUrl ? `<a href="${r.dpiVersoUrl}" target="_blank" rel="noopener"><img src="${r.dpiVersoUrl}" alt="DPI verso" style="width:48px;height:32px;object-fit:cover;border-radius:4px;"></a>` : "-"}</td>
         <td>
           <button class="btn-ver" data-id="${r.id}">Ver</button>
           <button class="btn-del" data-id="${r.id}">Eliminar</button>
